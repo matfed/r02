@@ -89,6 +89,13 @@ void	ft_putstr(char *str)
 	}
 }
 
+void ft_putstr_prefixed(char* str, int is_first)
+{
+	if (!is_first)
+		ft_putstr(" ");
+	ft_putstr(str);
+}
+
 t_sized_dict new_t_sized_dict(t_dict *dictionary, int size)
 {
 	t_sized_dict d;
@@ -254,7 +261,7 @@ char *find_input(t_sized_dict dict, char *nb)
 	return(NULL);
 }
 
-void translate_2digit(t_sized_dict dict, char *nb)
+void translate_2digit(t_sized_dict dict, char *nb, int is_first)
 {
 	char *s;
 	char temp[3];
@@ -264,18 +271,17 @@ void translate_2digit(t_sized_dict dict, char *nb)
 	temp[2] = '\0';
 	if ((s = find_input(dict, temp)))
 	{
-		ft_putstr(s);
-		ft_putstr(" ");
+		ft_putstr_prefixed(s, is_first);
 	}
 	else 
 		ft_putstr("Errorrrrrrrr!\n");
 	if((s = find_input(dict, &nb[1])))
-		ft_putstr(s);
+		ft_putstr_prefixed(s, 0);
 	else 
 		ft_putstr("Errorrrrrrrr!\n");
 }
 
-void translate_3digit(t_sized_dict dict, char *nb)
+void translate_3digit(t_sized_dict dict, char *nb, int is_first)
 {
 	char *s;
 	char temp[2];
@@ -284,37 +290,40 @@ void translate_3digit(t_sized_dict dict, char *nb)
 	temp[1] ='\0';
 	if ((s = find_input(dict, temp)))
 	{
-		ft_putstr(s);
-		ft_putstr(" ");
+		ft_putstr_prefixed(s, is_first);
 	}
 	if ((s = find_input(dict, "100")))
 	{
-		ft_putstr(s);
-		ft_putstr(" ");
+		ft_putstr_prefixed(s, 0);
 	}
 	else 
 		ft_putstr("Errorrrrrrrr!\n");
-	translate_helper(dict, &nb[1]);
+	translate_helper(dict, &nb[1], 0);
 }
 
-void translate_helper(t_sized_dict dict, char *nb)
+void translate_helper(t_sized_dict dict, char *nb, int is_first)
 {
 	char *s;
 	int len;
 
+	while(*nb == '0')
+		nb++;
+	if(*nb == '\0')
+		return ;
+
 	len = ft_strlen(nb);
 	if ((s = find_input(dict, nb)))
 	{
-		ft_putstr(s);
+		ft_putstr_prefixed(s, is_first);
 		return ;
 	}
 	else if(len == 2)
 	{
-		translate_2digit(dict, nb);
+		translate_2digit(dict, nb, is_first);
 	} 
 	else if(len == 3)
 	{
-		translate_3digit(dict, nb);
+		translate_3digit(dict, nb, is_first);
 	}
 }
 
@@ -334,8 +343,7 @@ void translate_thousands(t_sized_dict dict, int num_zeros)
     temp[i] = '\0';
     if ((s = find_input(dict, temp)) && num_zeros > 0)
     {
-            ft_putstr(" ");
-            ft_putstr(s);
+            ft_putstr_prefixed(s, 0);
     }
 }
 
@@ -352,7 +360,7 @@ void ft_str_cpy(char *src, char *dest, int len)
 	dest[i] = '\0';
 }
 
-void translate(t_sized_dict dict, char *nb)
+void translate(t_sized_dict dict, char *nb, int is_first)
 {
 	char *s;
 	char temp[4];
@@ -361,7 +369,7 @@ void translate(t_sized_dict dict, char *nb)
 
 	if((s = find_input(dict, nb)))
 	{       
-		ft_putstr(s);
+		ft_putstr_prefixed(s, is_first);
 		return;
 	}
 	while(*nb == '0')
@@ -371,10 +379,9 @@ void translate(t_sized_dict dict, char *nb)
 	len = ft_strlen(nb);
 	num_zeros = ((len - 1) / 3 ) * 3;
 	ft_str_cpy(nb, temp, len - num_zeros);
-	translate_helper(dict, temp);
+	translate_helper(dict, temp, is_first);
 	translate_thousands(dict, num_zeros);
-	ft_putstr(" ");
-	translate(dict, nb + (len - num_zeros));
+	translate(dict, nb + (len - num_zeros), 0);
 }
 
 int	main(int ac, char **av) //dodac walidacje
@@ -395,7 +402,7 @@ int	main(int ac, char **av) //dodac walidacje
 		return (ft_pstr_err("Dict Error\n"));
 	if(valid_input(av[ac - 1]))
 		return (ft_pstr_err("Error\n"));
-	translate(dict, av[ac - 1]);
+	translate(dict, av[ac - 1], 1);
 	ft_putstr("\n");
 	free(dict.dictionary);
 	return (0);
